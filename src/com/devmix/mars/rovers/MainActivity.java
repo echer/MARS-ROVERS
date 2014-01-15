@@ -1,49 +1,111 @@
 package com.devmix.mars.rovers;
 
+import java.io.Serializable;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * @author echer
  *
  */
+@SuppressLint("DefaultLocale")
 public class MainActivity extends Activity {
 
-	private int squareWidh = 0,squareHeight;
+	private int squareWidh = 0,squareHeight = 0;
 	
 	
-	private static final String leftRotate = "L";
-	private static final String rightRotate = "R";
-	private static final String move = "M";
+	public static final char leftRotate = 'L';
+	public static final char rightRotate = 'R';
+	public static final char move = 'M';
+	
+	private TextView txtOutput;
+	private EditText edSquareW,edSquareH,edRoverX,edRoverY,edRoverP,edComando;
+	
+	private Rover roverInterface;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        buildSquare(5, 5);
+        txtOutput = (TextView)findViewById(R.id.txtOutput);
+        edSquareW = (EditText)findViewById(R.id.edSquareW);
+        edSquareH = (EditText)findViewById(R.id.edSquareH);
+        edRoverX = (EditText)findViewById(R.id.edRoverX);
+        edRoverY = (EditText)findViewById(R.id.edRoverY);
+        edRoverP = (EditText)findViewById(R.id.edRoverP);
+        edComando = (EditText)findViewById(R.id.edComando);
         
-        //Rover rover1 = createRover(1,2,Rover.POSITION_NORTH);
-        Rover rover1 = new Rover(1,2,Rover.POSITION_NORTH);
         
-        rover1 = sendCommands(rover1,new String[]{leftRotate,move,leftRotate,move,leftRotate,move,leftRotate,move,move});
+        edSquareW.setText("5");
+        edSquareH.setText("5");
         
-        exibeResultado(rover1);
+        btnBuildSquare_onClick(null);
         
-        Rover rover2 = new Rover(3,3,Rover.POSITION_EAST);
         
-        rover2 = sendCommands(rover2, new String[]{"M","M","R","M","M","R","M","R","R","M"});
+        edRoverX.setText("1");
+        edRoverY.setText("2");
+        edRoverP.setText(String.valueOf(Rover.POSITION_NORTH));
         
-        exibeResultado(rover2);
+        btnAddRover_onClick(null);
+        
+        edComando.setText(new String(new char[]{leftRotate,move,leftRotate,move,leftRotate,move,leftRotate,move,move}));
+        
+        btnRunCommand_onClick(null);
+        
+        edRoverX.setText("3");
+        edRoverY.setText("3");
+        edRoverP.setText(String.valueOf(Rover.POSITION_EAST));
+        
+        btnAddRover_onClick(null);
+        
+        edComando.setText(new String(new char[]{move,move,rightRotate,move,move,rightRotate,move,rightRotate,rightRotate,move}));
+        
+        btnRunCommand_onClick(null);
     }
     
-    /**
+    private void appenOutputText(String string) {
+    	txtOutput.setText(txtOutput.getText()+"\n"+string);	
+    	Toast.makeText(this, string, Toast.LENGTH_SHORT).show();
+	}
+    
+    public void btnBuildSquare_onClick(View v){
+    	buildSquare(Integer.parseInt(edSquareW.getText().toString()), Integer.valueOf(edSquareH.getText().toString()));
+    }
+    
+    public void btnAddRover_onClick(View v){
+    	roverInterface = new Rover(Integer.parseInt(edRoverX.getText().toString()),Integer.parseInt(edRoverY.getText().toString()),getPositionTo());
+    }
+    
+    @SuppressLint("DefaultLocale")
+	private int getPositionTo() {
+    	String upper = edRoverP.getText().toString().toUpperCase();
+    	if("N".equals(upper))return Rover.POSITION_NORTH;
+    	if("E".equals(upper))return Rover.POSITION_EAST;
+    	if("S".equals(upper))return Rover.POSITION_SOUTH;
+    	if("W".equals(upper))return Rover.POSITION_WEAST;
+		return -1;
+	}
+
+	@SuppressLint("DefaultLocale")
+	public void btnRunCommand_onClick(View v){
+    	roverInterface = sendCommands(roverInterface,  edComando.getText().toString().toUpperCase().toCharArray());
+    	exibeResultado();
+    }
+
+	/**
      * EXIBE RESULTADO NO LOG DO ANDROID
      * @param r
      */
-    public void exibeResultado(Rover r){
-    	Log.i("Output", "X: "+r.getX()+" | Y: "+r.getY()+" | Front to: "+getFrontTo(r.getFrontTo()));
+    public void exibeResultado(){
+    	String saida = "X: "+roverInterface.getX()+" | Y: "+roverInterface.getY()+" | Front to: "+getFrontTo(roverInterface.getFrontTo());
+    	appenOutputText(saida);
     }
     
     /**
@@ -72,10 +134,13 @@ public class MainActivity extends Activity {
      * @param commands ARRAY DE COMANDOS A SEREM EXECUTADOS
      * @return ROVER QUE FORAM EXECUTADOS OS COMANDOS
      */
-	private Rover sendCommands(Rover rover, String... commands) {
-		for(String command:commands){
-			rover = runCommand(rover,command);
+	private Rover sendCommands(Rover rover, char[] commands) {
+		String strCommandos = "";
+		for(int i = 0;i<commands.length;i++){
+			rover = runCommand(rover,commands[i]);
+			strCommandos += commands[i];
 		}
+		appenOutputText("Comandos Enviados: "+strCommandos);
 		return rover;
 	}
 
@@ -85,7 +150,7 @@ public class MainActivity extends Activity {
 	 * @param command COMANDO A SER EXECUTADO
 	 * @return
 	 */
-	private Rover runCommand(Rover rover, String command) {
+	private Rover runCommand(Rover rover, char command) {
 		if(command == leftRotate){
 			rover.setFrontTo(rotateLeft(rover.getFrontTo()));
 		}else if(command == rightRotate){
@@ -132,6 +197,7 @@ public class MainActivity extends Activity {
     	if(width > 0 && height > 0){
     		squareWidh = width;
     		squareHeight = height;
+    		appenOutputText("Square criado: "+width+" X "+height);
 	    	return true;
     	}else{
     		return false;
@@ -143,11 +209,15 @@ public class MainActivity extends Activity {
 	 * @author echer
 	 *
 	 */
-    public class Rover{
-    	private static final int POSITION_NORTH = 0;
-    	private static final int POSITION_EAST = 1;
-    	private static final int POSITION_SOUTH = 2;
-    	private static final int POSITION_WEAST = 3;
+    public class Rover implements Serializable{
+    	/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1283763773881936508L;
+		public static final int POSITION_NORTH = 0;
+    	public static final int POSITION_EAST = 1;
+    	public static final int POSITION_SOUTH = 2;
+    	public static final int POSITION_WEAST = 3;
     	private int frontTo = POSITION_NORTH;
     	private int x = 0,y = 0;
     	
@@ -183,6 +253,7 @@ public class MainActivity extends Activity {
     		this.x = x;
     		this.y = y;
     		this.frontTo = frontTo;
+    		appenOutputText("Rover criado: X: "+this.x+" Y: "+this.y+" "+MainActivity.this.getFrontTo(this.frontTo));
     	}
 		public int getFrontTo() {
 			return frontTo;
