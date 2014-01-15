@@ -4,11 +4,14 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+/**
+ * @author echer
+ *
+ */
 public class MainActivity extends Activity {
 
-	private int[][] square;
+	private int squareWidh = 0,squareHeight;
 	
-	//private Rover[] rovers = new Rover[0];
 	
 	private static final String leftRotate = "L";
 	private static final String rightRotate = "R";
@@ -35,10 +38,19 @@ public class MainActivity extends Activity {
         exibeResultado(rover2);
     }
     
+    /**
+     * EXIBE RESULTADO NO LOG DO ANDROID
+     * @param r
+     */
     public void exibeResultado(Rover r){
     	Log.i("Output", "X: "+r.getX()+" | Y: "+r.getY()+" | Front to: "+getFrontTo(r.getFrontTo()));
     }
     
+    /**
+     * CONVERTE POSICAO EM STRING REPRESENTANDO A CARDINALIDADE
+     * @param frontTo CARDINALIDADE A SER CONVERTIDA
+     * @return CARDINALIDADE
+     */
     private String getFrontTo(int frontTo) {
 		switch (frontTo) {
 		case Rover.POSITION_NORTH:
@@ -54,6 +66,12 @@ public class MainActivity extends Activity {
 		}
 	}
 
+    /**
+     * ENVIA COMANDO PARA O ROVER E RETORNA O OBJETO
+     * @param rover
+     * @param commands ARRAY DE COMANDOS A SEREM EXECUTADOS
+     * @return ROVER QUE FORAM EXECUTADOS OS COMANDOS
+     */
 	private Rover sendCommands(Rover rover, String... commands) {
 		for(String command:commands){
 			rover = runCommand(rover,command);
@@ -61,6 +79,12 @@ public class MainActivity extends Activity {
 		return rover;
 	}
 
+	/**
+	 * EXECUTA COMANDO
+	 * @param rover
+	 * @param command COMANDO A SER EXECUTADO
+	 * @return
+	 */
 	private Rover runCommand(Rover rover, String command) {
 		if(command == leftRotate){
 			rover.setFrontTo(rotateLeft(rover.getFrontTo()));
@@ -72,6 +96,11 @@ public class MainActivity extends Activity {
 		return rover;
 	}
 
+	/**
+	 * RODA PARA A ESQUERDA E RETORNA A POSICAO
+	 * @param frontTo
+	 * @return
+	 */
 	private int rotateLeft(int frontTo) {
 		if(frontTo == Rover.POSITION_NORTH)return Rover.POSITION_WEAST;
 		if(frontTo == Rover.POSITION_WEAST)return Rover.POSITION_SOUTH;
@@ -80,6 +109,11 @@ public class MainActivity extends Activity {
 		return -1;
 	}
 	
+	/**
+	 * RODA PARA A DIREITA E RETORNA A POSICAO
+	 * @param frontTo
+	 * @return
+	 */
 	private int rotateRight(int frontTo) {
 		if(frontTo == Rover.POSITION_NORTH)return Rover.POSITION_EAST;
 		if(frontTo == Rover.POSITION_EAST)return Rover.POSITION_SOUTH;
@@ -88,38 +122,27 @@ public class MainActivity extends Activity {
 		return -1;
 	}
 	
-	
-
-	/*private Rover createRover(int x, int y, int frontTo) {
-		Rover r = new Rover(x,y,frontTo);
-    	appendRover(new Rover(x,y,frontTo));
-    	return r;
-	}*/
-
-	/*private void appendRover(Rover rover) {
-		Rover[] aux;
-		if(rovers.length == 0){
-			aux = new Rover[1];
-			aux[0] = rover;
-		}else{
-			aux = new Rover[rovers.length+1];
-			for(int i = 0;i<aux.length-1;i++){
-				aux[i] = rovers[i];
-			}
-			aux[rovers.length] = rover;
-		}
-		rovers = aux;
-	}*/
-
+	/**
+	 * CONSTROI PLANICE PARA O ROVER ANDAR
+	 * @param width
+	 * @param height
+	 * @return
+	 */
 	private boolean buildSquare(int width, int height){
     	if(width > 0 && height > 0){
-	    	square = new int[width][height];
+    		squareWidh = width;
+    		squareHeight = height;
 	    	return true;
     	}else{
     		return false;
     	}
     }
     
+	/**
+	 * OBJETO ROVER
+	 * @author echer
+	 *
+	 */
     public class Rover{
     	private static final int POSITION_NORTH = 0;
     	private static final int POSITION_EAST = 1;
@@ -128,18 +151,25 @@ public class MainActivity extends Activity {
     	private int frontTo = POSITION_NORTH;
     	private int x = 0,y = 0;
     	
+    	/**
+    	 * MOVE O ROVER DE ACORDO COM A POSICAO RESPEITANDO A PLANICE DO SQUARE
+    	 */
     	public void move(){
     		switch (frontTo) {
 			case POSITION_NORTH:
+				if((y+1) <= squareHeight)
 				y++;
 				break;
 			case POSITION_SOUTH:
+				if((y-1) >= 0)
 				y--;
 				break;
 			case POSITION_EAST:
+				if((x+1) <= squareWidh)
 				x++;
 				break;
 			case POSITION_WEAST:
+				if((x-1) >= 0)
 				x--;
 				break;
 			default:
